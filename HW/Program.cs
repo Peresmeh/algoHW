@@ -20,6 +20,19 @@ namespace AlgoHW
             else
                 return tmp * tmp * x;
         }
+        public static double PowBinary(double x, uint N)
+        {
+            uint mask = (uint)1 << (sizeof(uint) * 8 - 1);
+            double res = (N & mask) != 0 ? 1:0 ;
+            do
+            {
+                mask >>= 1;
+                res *= 2;
+                if ((N & mask) != 0)
+                    res += 1;
+            } while (mask != 1);
+                return res;
+        }
 
         public static ulong FibonachiReq(uint N)
         {
@@ -46,13 +59,29 @@ namespace AlgoHW
             return res;
         }
 
-        public static uint AmountOfPrime(uint N, Func<uint, bool> method)
+        public static uint AmountOfPrimes(uint N, Func<uint, bool> method)
         {
+            if(N < 4)
+                return N;
 
+            uint res = 3;
+            for (uint i = 0; i <= N; i++)
+                if (method(i)) res++;
 
+            return res;
         }
 
-        public static bool IsPrimeSimple()
+        public static bool IsPrimeSimple(uint N)
+        {
+            for (int i = 2; i < N; i++)
+            {
+                if (N % i == 0)
+                    return false;
+            }
+            return true;
+        }
+
+        //public static 
     }
 
     internal class Solver
