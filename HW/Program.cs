@@ -2,6 +2,59 @@
 
 namespace AlgoHW
 {
+    internal static class AlgoMath
+    {
+        public static double Pow(double x, uint N)
+        {
+            double res = 1;
+            for (int i = 0; i < N; i++)
+                res *= x;
+            return res;
+        }
+        public static double PowMul(double x, uint N)
+        {
+            if (N == 0) return 1;
+            double tmp = PowMul(x, N / 2);
+            if (N % 2 == 0)
+                return tmp * tmp;
+            else
+                return tmp * tmp * x;
+        }
+
+        public static ulong FibonachiReq(uint N)
+        {
+            if (N < 3) return 1;
+            else return FibonachiReq(N - 1) + FibonachiReq(N - 2);
+        }
+
+        public static ulong FibonachiReqCached(uint N, ulong cache1 = 1, ulong cache2 = 1, uint target = 3)
+        {
+            if (N < 3) return 1;
+            if (N > target) return FibonachiReqCached(N, cache2, cache1 + cache2, target + 1);
+            else return cache1 + cache2;
+        }
+
+        public static ulong FibonachiIter(uint N)
+        {
+            ulong res = 1, cache = 1, tmp = cache;
+            for(uint i=2; i < N;i++)
+            {
+                tmp = res;
+                res += cache;
+                cache = tmp;
+            }
+            return res;
+        }
+
+        public static uint AmountOfPrime(uint N, Func<uint, bool> method)
+        {
+
+
+        }
+
+        public static bool IsPrimeSimple()
+    }
+
     internal class Solver
     {
         public string Run(string[] args)
