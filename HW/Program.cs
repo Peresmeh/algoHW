@@ -2,6 +2,11 @@
 
 namespace AlgoHW
 {
+    public class Matrix<T> where T :unmanaged
+    { 
+        
+    }
+
     internal static class AlgoMath
     {
         public static double Pow(double x, uint N)
@@ -34,20 +39,20 @@ namespace AlgoHW
                 return res;
         }
 
-        public static ulong FibonachiReq(uint N)
+        public static ulong FibonacciReq(uint N)
         {
             if (N < 3) return 1;
-            else return FibonachiReq(N - 1) + FibonachiReq(N - 2);
+            else return FibonacciReq(N - 1) + FibonacciReq(N - 2);
         }
 
-        public static ulong FibonachiReqCached(uint N, ulong cache1 = 1, ulong cache2 = 1, uint target = 3)
+        public static ulong FibonacciReqCached(uint N, ulong cache1 = 1, ulong cache2 = 1, uint target = 3)
         {
             if (N < 3) return 1;
-            if (N > target) return FibonachiReqCached(N, cache2, cache1 + cache2, target + 1);
+            if (N > target) return FibonacciReqCached(N, cache2, cache1 + cache2, target + 1);
             else return cache1 + cache2;
         }
 
-        public static ulong FibonachiIter(uint N)
+        public static ulong FibonacciIter(uint N)
         {
             ulong res = 1, cache = 1, tmp = cache;
             for(uint i=2; i < N;i++)
@@ -58,6 +63,13 @@ namespace AlgoHW
             }
             return res;
         }
+
+        public static ulong FibonacciGold(int N)
+        {
+            double fi = (1.0 + Math.Sqrt(5.0)) / 2.0;
+            return (ulong)Math.Floor(Math.Pow(fi, N) / Math.Sqrt(5.0) + 0.5);
+        }
+
 
         public static uint AmountOfPrimes(uint N, Func<uint, bool> method)
         {
