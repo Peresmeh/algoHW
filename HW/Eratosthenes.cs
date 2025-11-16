@@ -14,7 +14,7 @@ namespace AlgoHW
 
     public class EratosthenesSimple : IEratosthenesCache
     {
-        private bool[] cache = Array.Empty<bool>();
+        private static bool[] cache = Array.Empty<bool>();
 
         public void UpdateCache(uint N)
         {
@@ -23,12 +23,12 @@ namespace AlgoHW
                 cache = new bool[N];
                 Array.Fill(cache, true);
                 for (uint i = 2; i < N; i++)
-                    for (uint j = i; j < N; j += i)
-                        cache[j] = false;
+                    for (uint j = 2*i; j <= N; j += i)
+                        cache[j-1] = false;
             }
         }
 
-        public bool IsPrime(uint N) => cache[N];
+        public bool IsPrime(uint N) => cache[N - 1];
     }
     public class EratosthenesON : IEratosthenesCache
     {
@@ -56,7 +56,7 @@ namespace AlgoHW
     }
     public class EratosthenesMemoryOptimised : IEratosthenesCache
     {
-        private uint[] cache = Array.Empty<uint>();
+        private static uint[] cache = Array.Empty<uint>();
 
         public void UpdateCache(uint N)
         {
