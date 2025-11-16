@@ -8,68 +8,68 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Tests\" />
+    <Folder Include="Tests\Power\" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Tests\test.0.in">
+    <None Update="Tests\Power\test.0.in">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tests\test.0.out">
+    <None Update="Tests\Power\test.0.out">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tests\test.1.in">
+    <None Update="Tests\Power\test.1.in">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tests\test.1.out">
+    <None Update="Tests\Power\test.1.out">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tests\test.2.in">
+    <None Update="Tests\Power\test.2.in">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tests\test.2.out">
+    <None Update="Tests\Power\test.2.out">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tests\test.3.in">
+    <None Update="Tests\Power\test.3.in">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tests\test.3.out">
+    <None Update="Tests\Power\test.3.out">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tests\test.4.in">
+    <None Update="Tests\Power\test.4.in">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tests\test.4.out">
+    <None Update="Tests\Power\test.4.out">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tests\test.5.in">
+    <None Update="Tests\Power\test.5.in">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tests\test.5.out">
+    <None Update="Tests\Power\test.5.out">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tests\test.6.in">
+    <None Update="Tests\Power\test.6.in">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tests\test.6.out">
+    <None Update="Tests\Power\test.6.out">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tests\test.7.in">
+    <None Update="Tests\Power\test.7.in">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tests\test.7.out">
+    <None Update="Tests\Power\test.7.out">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tests\test.8.in">
+    <None Update="Tests\Power\test.8.in">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tests\test.8.out">
+    <None Update="Tests\Power\test.8.out">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tests\test.9.in">
+    <None Update="Tests\Power\test.9.in">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tests\test.9.out">
+    <None Update="Tests\Power\test.9.out">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
