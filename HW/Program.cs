@@ -14,7 +14,10 @@ namespace AlgoHW
         {
             double res = 1;
             for (ulong i = 0; i < N; i++)
+            {
                 res *= x;
+                Test.SetChecker(i, N);
+            }
             return res;
         }
         public static double PowMul(double x, ulong N)
@@ -42,23 +45,18 @@ namespace AlgoHW
 
         public static Matrix<ulong> MatrixPowBinary(Matrix<ulong> x, uint N)
         {
-            uint mask = (uint)1 << (sizeof(uint) * 8 - 1);
-            Matrix<ulong> res = new() { { 1, 1 }, { 1, 0 } };
-            if ((N & mask) != 0)
-                return res;
-
-            Matrix<ulong> m1 = new() { { 1, 1 }, { 1, 1 } };
-            Matrix<ulong> m2 = new() { { 2, 0 }, { 0, 2 } };
+            ulong mask = 1ul << (sizeof(ulong) * 8 - 1);
+            Matrix<ulong> res = (N & mask) != 0 ? x : new() { { 1, 0 }, { 0, 1 } };
 
             do
             {
                 mask >>= 1;
-                res = res * m2;
+                res = res * res;
                 if ((N & mask) != 0)
-                    res = res + m1;
+                    res = res * x;
             } while (mask != 1);
             return res;
-        }//public static 
+        }
     }
     internal static class AlgoFibonacci
     {
@@ -103,6 +101,7 @@ namespace AlgoHW
 
         public static BigInteger FibonacciIter(uint N)
         {
+            if (N == 0) return 0;
             var arTmp = new byte[1024*1024*1024];
             arTmp[0] = 1;
             BigInteger res = new(arTmp), cache = 1, tmp = cache;
@@ -111,21 +110,24 @@ namespace AlgoHW
                 tmp = res;
                 res += cache;
                 cache = tmp;
+
+                Test.SetChecker(i, N);
             }
             return res;
         }
 
-        public static BigInteger FibonacciGold(int N)
+        public static ulong FibonacciGold(int N)
         {
             if (N == 0) return 0;
             else if (N < 3) return 1;
 
             double fi = (1.0 + Math.Sqrt(5.0)) / 2.0;
-            return (BigInteger)Math.Floor(Math.Pow(fi, N) / Math.Sqrt(5.0) + 0.5);
+            return (ulong)Math.Floor(Math.Pow(fi, N) / Math.Sqrt(5.0) + 0.5);
         }
 
         public static ulong FibonacciMatr(int N)
         {
+            if (N == 0) return 0;
             if (N < 3) return 1;
             Matrix<ulong> init = new() { { 1, 1 }, { 1, 0 } };
             Matrix<ulong> res = AlgoPow.MatrixPowBinary(init, (uint)(N - 1));
@@ -220,12 +222,6 @@ namespace AlgoHW
             er.UpdateCache(N);
 
             return er.IsPrime(N);
-            /*for (uint i = 3; i <= Math.Sqrt(N); i++)
-            {
-                if (er.IsPrime(i) && (N % i == 0))
-                    return false;
-            }
-            return true;*/
         }
         public static bool IsPrimeOptimisedEr2(uint N)
         {
@@ -265,9 +261,16 @@ namespace AlgoHW
         {
             Test test = new Test();
 
+            Console.WriteLine($"{AlgoPow.PowIter(2, 64):F100}");
+            Console.WriteLine($"{AlgoPow.PowMul(2, 64):F100}");
+            Console.WriteLine($"{AlgoPow.PowIter(0.2, 64):F100}");
+            Console.WriteLine($"{AlgoPow.PowMul(0.2, 64):F100}");
+            Console.WriteLine($"{AlgoPow.PowIter(1.1, 64):F100}");
+            Console.WriteLine($"{AlgoPow.PowMul(1.1, 64):F100}");
+
             Console.WriteLine("<---PowIter tests--->");
-            //test.Run("Tests\\Power", AlgoMath.PowIter);
-            Console.WriteLine("<---PowMul tests--->");
+            //test.Run("Tests\\Power", AlgoPow.PowIter);
+            Console.WriteLine(" <---PowMul tests--->");
             test.Run("Tests\\Power", AlgoPow.PowMul);
             Console.WriteLine("<---PowBinary tests--->");
             test.Run("Tests\\Power", AlgoPow.PowBinary);
@@ -288,7 +291,7 @@ namespace AlgoHW
             //test.Run("Tests\\Primes", AlgoPrime.AmountOfPrimesOptimisedEr4);
             Console.WriteLine("***********************");
             Console.WriteLine("<---FibonacciIter tests--->");
-            //test.Run("Tests\\Fibo", AlgoFibonacci.FibonacciIter);
+            test.Run("Tests\\Fibo", AlgoFibonacci.FibonacciIter);
             Console.WriteLine("<---FibonacciReq tests--->");
             //test.Run("Tests\\Fibo", AlgoFibonacci.FibonacciRec);
             Console.WriteLine("<---FibonacciReqCached tests--->");

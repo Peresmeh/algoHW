@@ -23,7 +23,6 @@ namespace AlgoHW
                 cache = new bool[N];
                 Array.Fill(cache, true);
                 for (uint i = 2; i <= N; i++)
-                //if (cache[i - 1])
                 {
                     for (uint j = 2 * i; j <= N; j += i)
                         cache[j - 1] = false;
@@ -102,14 +101,14 @@ namespace AlgoHW
                 Array.Fill(cache, 0xffffffff);
                 for (uint i = 3; i <= limit * sizeof(uint) * 8 * 2; i += 2)
                 {
-                    if(IsPrime(i))
-                    for (uint j = 3 * i; j <= limit * sizeof(uint) * 8 * 2; j += 2 * i)
-                    {
-                        uint offset = j / (sizeof(uint) * 8) / 2;  //Devide by tow because of skipping even values
-                        int maskOffset = (int)((j / 2) % (sizeof(uint) * 8));
-                        uint mask = 1u << maskOffset;
-                        cache[offset] &= ~mask;
-                    }
+                    if (IsPrime(i))
+                        for (uint j = 3 * i; j <= limit * sizeof(uint) * 8 * 2; j += 2 * i)
+                        {
+                            uint offset = j / (sizeof(uint) * 8) / 2;  //Devide by tow because of skipping even values
+                            int maskOffset = (int)((j / 2) % (sizeof(uint) * 8));
+                            uint mask = 1u << maskOffset;
+                            cache[offset] &= ~mask;
+                        }
                 }
             }
         }

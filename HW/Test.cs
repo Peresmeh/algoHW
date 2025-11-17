@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -65,10 +66,10 @@ namespace AlgoHW
 
                     string formater = "0";
                     var tmp = output[0].Replace(System.Globalization.NumberFormatInfo.InvariantInfo.NumberDecimalSeparator, System.Globalization.NumberFormatInfo.CurrentInfo.NumberDecimalSeparator);
-                    if(tmp.Contains(System.Globalization.NumberFormatInfo.CurrentInfo.NumberDecimalSeparator))
+                    if (tmp.Contains(System.Globalization.NumberFormatInfo.CurrentInfo.NumberDecimalSeparator))
                     {
                         int len = tmp.Length - tmp.IndexOf(System.Globalization.NumberFormatInfo.CurrentInfo.NumberDecimalSeparator) - 1;
-                        StringBuilder lbldr = new (".");
+                        StringBuilder lbldr = new(".");
                         for (int i = 0; i < len; i++) lbldr.Append('0');
                         formater = lbldr.ToString();
                     }
@@ -81,8 +82,8 @@ namespace AlgoHW
                             .Invoke(null, [tmp]);
 
                     var stringer = test.GetMethodInfo().ReturnType.GetMethod("ToString", BindingFlags.Public | BindingFlags.Instance, [typeof(string)]);
-                    returnedString = (string)stringer.Invoke(returnedValue,[formater]);
-                    expectedString = (string)stringer.Invoke(expectedValue, [formater]);  
+                    returnedString = (string)stringer.Invoke(returnedValue, [formater]);
+                    expectedString = (string)stringer.Invoke(expectedValue, [formater]);
                 }
                 catch (Exception pe)
                 {
@@ -109,14 +110,14 @@ namespace AlgoHW
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.Write($"{actual.Substring(0, 9)}...{actual.Substring(actual.Length - 9)}");
                     Console.ForegroundColor = color;
-                       Console.WriteLine ($" (завершено за {ticks:###,###,###,###,###,###,###,###,###} тиков)");
+                    Console.WriteLine($" (завершено за {ticks:###,###,###,###,###,###,###,###,###} тиков)");
 
                 }
             }
             else
             {
                 var color = Console.ForegroundColor;
-                string common = string.Concat(actual.TakeWhile((c, i) =>  c == expected[i]));
+                string common = string.Concat(actual.TakeWhile((c, i) => i < Math.Min(actual.Length, expected.Length) && (c == expected[i])));
                 Console.Write($"Тест {iter} ошибка: {actual} ожидалось: ");
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.Write(common);
@@ -129,6 +130,24 @@ namespace AlgoHW
         private static void ResultOutput(int iter, Exception ex)
         {
             Console.WriteLine($"Тест {iter} ошибка: {ex.Message}");
+        }
+
+        private const int repeaterMS = 2000;
+
+
+        private static DateTime checkTime = DateTime.Now;
+
+        public static void SetChecker(object _check, object _limit) 
+        {
+
+            if (_check == null || _limit == null) return;
+
+            if ((DateTime.Now - checkTime).TotalMilliseconds > repeaterMS)
+            {
+                checkTime = DateTime.Now;
+                Console.Write($"{_check} of {_limit}");
+                Console.SetCursorPosition(0, Console.CursorTop);
+            }
         }
     }
 }
