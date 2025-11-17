@@ -22,9 +22,12 @@ namespace AlgoHW
             {
                 cache = new bool[N];
                 Array.Fill(cache, true);
-                for (uint i = 2; i < N; i++)
-                    for (uint j = 2*i; j <= N; j += i)
-                        cache[j-1] = false;
+                for (uint i = 2; i <= N; i++)
+                //if (cache[i - 1])
+                {
+                    for (uint j = 2 * i; j <= N; j += i)
+                        cache[j - 1] = false;
+                }
             }
         }
 
@@ -32,27 +35,26 @@ namespace AlgoHW
     }
     public class EratosthenesON : IEratosthenesCache
     {
-        private bool[] cache = Array.Empty<bool>();
+        private static bool[] cache = Array.Empty<bool>();
 
         public void UpdateCache(uint N)
         {
             if (N > cache.Length)
             {
                 cache = new bool[N];
-                Array.Fill(cache, false);
-                for (uint i = 2; i < N; i++)
+                Array.Fill(cache, true);
+                for (uint i = 2; i <= N; i++)
                 {
-                    if (!cache[i])
+                    if (cache[i - 1])
                     {
-                        cache[i] = true;
-                        for (uint j = i; j * i < N; j += i)
-                            cache[j] = true;
+                        for (ulong j = i * 2; j <= N; j += i)
+                            cache[j - 1] = false;
                     }
                 }
             }
         }
 
-        public bool IsPrime(uint N) => (N == 1) || cache[N];
+        public bool IsPrime(uint N) => (N == 1) || cache[N - 1];
     }
     public class EratosthenesMemoryOptimised : IEratosthenesCache
     {
@@ -60,16 +62,17 @@ namespace AlgoHW
 
         public void UpdateCache(uint N)
         {
-            uint limit = N / (sizeof(uint) * 8) + 1;
+            uint limit = N / (sizeof(uint) * 8 * 2) + 1;
             if (limit > cache.Length)
             {
                 cache = new uint[limit];
                 Array.Fill(cache, 0xffffffff);
-                for (uint i = 3; i < limit*sizeof(uint)*8*2; i+=2)
-                    for (uint j = i; j < N; j += i)
+                for (uint i = 3; i <= limit * sizeof(uint) * 8 * 2; i += 2)
+                    for (uint j = 3 * i; j <= limit * sizeof(uint) * 8 * 2; j += 2 * i)
                     {
-                        uint offset = i / (sizeof(uint) * 8) / 2;  //Devide by tow because of skipping even values
-                        uint mask = 1u << (int)(i % (sizeof(uint) * 8 * 2));
+                        uint offset = j / (sizeof(uint) * 8) / 2;  //Devide by tow because of skipping even values
+                        int maskOffset = (int)((j / 2) % (sizeof(uint) * 8));
+                        uint mask = 1u << maskOffset;
                         cache[offset] &= ~mask;
                     }
             }
@@ -81,7 +84,43 @@ namespace AlgoHW
             else
             {
                 uint offset = N / (sizeof(uint) * 8) / 2;  //Devide by tow because of skipping even values
-                uint mask = 1u << (int)(N % (sizeof(uint) * 8 * 2));
+                uint mask = 1u << (int)((N / 2) % (sizeof(uint) * 8));
+                return (cache[offset] & mask) != 0;
+            }
+        }
+    }
+    public class EratosthenesMemoryOptimisedON : IEratosthenesCache
+    {
+        private static uint[] cache = Array.Empty<uint>();
+
+        public void UpdateCache(uint N)
+        {
+            uint limit = N / (sizeof(uint) * 8 * 2) + 1;
+            if (limit > cache.Length)
+            {
+                cache = new uint[limit];
+                Array.Fill(cache, 0xffffffff);
+                for (uint i = 3; i <= limit * sizeof(uint) * 8 * 2; i += 2)
+                {
+                    if(IsPrime(i))
+                    for (uint j = 3 * i; j <= limit * sizeof(uint) * 8 * 2; j += 2 * i)
+                    {
+                        uint offset = j / (sizeof(uint) * 8) / 2;  //Devide by tow because of skipping even values
+                        int maskOffset = (int)((j / 2) % (sizeof(uint) * 8));
+                        uint mask = 1u << maskOffset;
+                        cache[offset] &= ~mask;
+                    }
+                }
+            }
+        }
+
+        public bool IsPrime(uint N)
+        {
+            if (N % 2 == 0) return N == 2;
+            else
+            {
+                uint offset = N / (sizeof(uint) * 8) / 2;  //Devide by tow because of skipping even values
+                uint mask = 1u << (int)((N / 2) % (sizeof(uint) * 8));
                 return (cache[offset] & mask) != 0;
             }
         }

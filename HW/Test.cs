@@ -100,19 +100,30 @@ namespace AlgoHW
         {
             if (actual.Equals(expected))
             {
-                Console.WriteLine($"Тест {iter} OK: {actual} (завершено за {ticks:###,###,###,###,###,###,###,###,###} тиков)");
+                if (actual.Length < 20)
+                    Console.WriteLine($"Тест {iter} OK: {actual} (завершено за {ticks:###,###,###,###,###,###,###,###,###} тиков)");
+                else
+                {
+                    var color = Console.ForegroundColor;
+                    Console.Write($"Тест {iter} OK: ");
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.Write($"{actual.Substring(0, 9)}...{actual.Substring(actual.Length - 9)}");
+                    Console.ForegroundColor = color;
+                       Console.WriteLine ($" (завершено за {ticks:###,###,###,###,###,###,###,###,###} тиков)");
+
+                }
             }
             else
             {
                 var color = Console.ForegroundColor;
-                string common = string.Concat(actual.TakeWhile((c, i) => c == expected[i]));
+                string common = string.Concat(actual.TakeWhile((c, i) =>  c == expected[i]));
                 Console.Write($"Тест {iter} ошибка: {actual} ожидалось: ");
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.Write(common);
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.Write(expected.Substring(common.Length));
                 Console.ForegroundColor = color;
-                Console.WriteLine($" (завершено за {ticks:000,} тиков)");
+                Console.WriteLine($" (завершено за {ticks::###,###,###,###,###,###,###,###,###} тиков)");
             }
         }
         private static void ResultOutput(int iter, Exception ex)
