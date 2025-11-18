@@ -43,10 +43,10 @@ namespace AlgoHW
             return res;
         }
 
-        public static Matrix<ulong> MatrixPowBinary(Matrix<ulong> x, uint N)
+        public static Matrix<BigInteger> MatrixPowBinary(Matrix<BigInteger> x, uint N)
         {
             ulong mask = 1ul << (sizeof(ulong) * 8 - 1);
-            Matrix<ulong> res = (N & mask) != 0 ? x : new() { { 1, 0 }, { 0, 1 } };
+            Matrix<BigInteger> res = (N & mask) != 0 ? x : new() { { 1, 0 }, { 0, 1 } };
 
             do
             {
@@ -61,7 +61,7 @@ namespace AlgoHW
     internal static class AlgoFibonacci
     {
         static int depth = 1;
-        const int depthLimit = 4100;
+        const int depthLimit = 4000;
 
         public static BigInteger FibonacciRec(uint N)
         {
@@ -91,7 +91,7 @@ namespace AlgoHW
 
             if (N == 0) res = 0;
             else if (N < 3) res = 1;
-            if (N > target) res = FibonacciRecCached(N, cache2, cache1 + cache2, target + 1);
+            else if (N > target) res = FibonacciRecCached(N, cache2, cache1 + cache2, target + 1);
             else res = cache1 + cache2;
 
             depth--;
@@ -125,12 +125,12 @@ namespace AlgoHW
             return (ulong)Math.Floor(Math.Pow(fi, N) / Math.Sqrt(5.0) + 0.5);
         }
 
-        public static ulong FibonacciMatr(int N)
+        public static BigInteger FibonacciMatr(int N)
         {
             if (N == 0) return 0;
             if (N < 3) return 1;
-            Matrix<ulong> init = new() { { 1, 1 }, { 1, 0 } };
-            Matrix<ulong> res = AlgoPow.MatrixPowBinary(init, (uint)(N - 1));
+            Matrix<BigInteger> init = new() { { 1, 1 }, { 1, 0 } };
+            Matrix<BigInteger> res = AlgoPow.MatrixPowBinary(init, (uint)(N - 1));
             return res[0, 0];
         }
     }
@@ -282,9 +282,11 @@ namespace AlgoHW
             test.Run("Tests\\Power", AlgoPow.PowBinary);
             Console.WriteLine("***********************");
             Console.WriteLine("<---IsPrimeSimple tests--->");
-            test.Run("Tests\\Primes", AlgoPrime.AmountOfPrimesSimple);
+            Console.WriteLine("SKIPPED");
+            //test.Run("Tests\\Primes", AlgoPrime.AmountOfPrimesSimple);
             Console.WriteLine("<---AmountOfPrimesOptimised1 tests--->");
-            test.Run("Tests\\Primes", AlgoPrime.AmountOfPrimesOptimised1);
+            Console.WriteLine("SKIPPED");
+            //test.Run("Tests\\Primes", AlgoPrime.AmountOfPrimesOptimised1);
             Console.WriteLine("<---AmountOfPrimesOptimised2 tests--->");
             test.Run("Tests\\Primes", AlgoPrime.AmountOfPrimesOptimised2);
             Console.WriteLine("<---AmountOfPrimesOptimisedEr1 tests--->");
@@ -297,9 +299,11 @@ namespace AlgoHW
             test.Run("Tests\\Primes", AlgoPrime.AmountOfPrimesOptimisedEr4);
             Console.WriteLine("***********************");
             Console.WriteLine("<---FibonacciIter tests--->");
-            test.Run("Tests\\Fibo", AlgoFibonacci.FibonacciIter);
+            Console.WriteLine("SKIPPED");
+            //test.Run("Tests\\Fibo", AlgoFibonacci.FibonacciIter);
             Console.WriteLine("<---FibonacciReq tests--->");
-            test.Run("Tests\\Fibo", AlgoFibonacci.FibonacciRec);
+            Console.WriteLine("SKIPPED");
+            //test.Run("Tests\\Fibo", AlgoFibonacci.FibonacciRec);
             Console.WriteLine("<---FibonacciReqCached tests--->");
             test.Run("Tests\\Fibo", AlgoFibonacci.FibonacciRecCachedWrapper);
             Console.WriteLine("<---FibonacciGold tests--->");

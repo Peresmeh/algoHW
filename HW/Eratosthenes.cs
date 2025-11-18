@@ -18,15 +18,20 @@ namespace AlgoHW
 
         public void UpdateCache(uint N)
         {
+            uint counter = 0;
             if (N > cache.Length)
             {
                 cache = new bool[N];
                 Array.Fill(cache, true);
-                for (uint i = 2; i <= N; i++)
+                Parallel.For(2, N+1, (i, state)=>
+                //for (uint i = 2; i <= N; i++)
                 {
-                    for (uint j = 2 * i; j <= N; j += i)
-                        cache[j - 1] = false;
-                }
+                    for (uint j = (uint)(2 * i); j <= N; j += (uint)i)
+                        cache[j - 1] = false; 
+
+                    Interlocked.Increment(ref counter);
+                    Test.SetChecker(counter, N);
+                });
             }
         }
 
@@ -42,6 +47,7 @@ namespace AlgoHW
             {
                 cache = new bool[N];
                 Array.Fill(cache, true);
+
                 for (uint i = 2; i <= N; i++)
                 {
                     if (cache[i - 1])
@@ -49,6 +55,7 @@ namespace AlgoHW
                         for (ulong j = i * 2; j <= N; j += i)
                             cache[j - 1] = false;
                     }
+                    Test.SetChecker(i, N);
                 }
             }
         }
@@ -61,19 +68,28 @@ namespace AlgoHW
 
         public void UpdateCache(uint N)
         {
+            uint counter = 0;
             uint limit = N / (sizeof(uint) * 8 * 2) + 1;
             if (limit > cache.Length)
             {
                 cache = new uint[limit];
                 Array.Fill(cache, 0xffffffff);
-                for (uint i = 3; i <= limit * sizeof(uint) * 8 * 2; i += 2)
+                Parallel.For(3, limit * sizeof(uint) * 8, (li, state) =>
+                {
+                    uint i = 3 + ((uint)li - 3) * 2;
+                    //                for (uint i = 3; i <= limit * sizeof(uint) * 8 * 2; i += 2)
                     for (uint j = 3 * i; j <= limit * sizeof(uint) * 8 * 2; j += 2 * i)
                     {
                         uint offset = j / (sizeof(uint) * 8) / 2;  //Devide by tow because of skipping even values
                         int maskOffset = (int)((j / 2) % (sizeof(uint) * 8));
                         uint mask = 1u << maskOffset;
-                        cache[offset] &= ~mask;
+                        lock(cache)
+                            cache[offset] &= ~mask;
                     }
+
+                    Interlocked.Increment(ref counter);
+                    Test.SetChecker(counter, N);
+                });
             }
         }
 

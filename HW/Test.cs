@@ -124,7 +124,7 @@ namespace AlgoHW
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.Write(expected.Substring(common.Length));
                 Console.ForegroundColor = color;
-                Console.WriteLine($" (завершено за {ticks::###,###,###,###,###,###,###,###,###} тиков)");
+                Console.WriteLine($" (завершено за {ticks:###,###,###,###,###,###,###,###,###} тиков)");
             }
         }
         private static void ResultOutput(int iter, Exception ex)
@@ -136,17 +136,21 @@ namespace AlgoHW
 
 
         private static DateTime checkTime = DateTime.Now;
+        private static object locker = new();
 
-        public static void SetChecker(object _check, object _limit) 
+        public static void SetChecker(object _check, object _limit)
         {
 
             if (_check == null || _limit == null) return;
 
             if ((DateTime.Now - checkTime).TotalMilliseconds > repeaterMS)
             {
-                checkTime = DateTime.Now;
-                Console.Write($"{_check} of {_limit}");
-                Console.SetCursorPosition(0, Console.CursorTop);
+                lock (locker)
+                {
+                    checkTime = DateTime.Now;
+                    Console.Write($"{_check} of {_limit}");
+                    Console.SetCursorPosition(0, Console.CursorTop);
+                }
             }
         }
     }

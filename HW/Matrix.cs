@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace AlgoHW
 {
-    public class Matrix<T> : IEnumerable where T : unmanaged
+    public class Matrix<T> : IEnumerable 
     {
         private static readonly Func<T, T, T> addMethod;
         private static readonly Func<T, T, T> mulMethod;
