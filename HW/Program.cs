@@ -1,66 +1,56 @@
 ﻿using System;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Diagnostics;
 
 namespace AlgoHW
 {
-    internal class Solver
-    {
-        public string Run(string[] args)
-        {
-            int n = int.Parse(args[0]);
-            return Tickets(n).ToString();
-        }
-
-        private void DPReset(long[][] dp)
-        {
-            for (int i = 0; i < dp.Length; i++)
-                Array.Fill<long>(dp[i], 0);
-        }
-
-        private long Tickets(int N)
-        {
-            //Let's make some dynamic staff
-            long[][] dp = new long[10][]; //dp array
-            long[] dpSum = new long[9 * N + 1]; //array of sum
-
-            //Some init staff
-            int sumLen = 1;
-            Array.Fill<long>(dpSum, 0);
-            dpSum[0] = 1;
-            for (int i = 0; i < dp.Length; i++)
-                dp[i] = new long[9 * N + 1];
-
-            for (int res = 0; res < N; res++) //Iterating N
-            {
-                DPReset(dp);
-                for (int i = 0; i < dp.Length; i++)  //Build main diagonal in dp
-                {
-                    Array.Copy(dpSum, 0, dp[i], i, sumLen);
-                }
-
-                Array.Fill<long>(dpSum, 0);
-                sumLen = 9 * (res + 1) + 1; //extending sum length
-                for (int i = 0; i < sumLen; i++) //iterating dp columns
-                    for (int j = 0; j < dp.Length; j++) //iterating dp rows
-                        dpSum[i] += dp[j][i];
-            }
-
-            //Now we've got sum of N. Let's calculate sum of squares 
-            long result = 0;
-            for (int i = 0; i < sumLen; i++)
-                result += dpSum[i] * dpSum[i];
-
-            return result;
-        }
-    }
-
     internal class Program
     {
+        private static void putValues(IDynamicArray<int> array, int n)
+        {
+            for (int i = 0; i < n; i++)
+            {
+                array.Add(i, array.Count);
+                Progress(i, n);
+            }
+        }
 
         static void Main(string[] args)
         {
-            Solver solver = new Solver();
-            Test test = new Test(solver.Run);
-            test.Run();
+            Stopwatch sw = new Stopwatch();
+            IDynamicArray<int>[] arrays = new IDynamicArray<int>[3];
+
+            for (int N = 100; N <= 1000000; N *= 10)
+            {
+                Console.WriteLine("N = " + N.ToString());
+                arrays[0] = new SingleDynamicArray<int>();
+                arrays[1] = new VectorDynamicArray<int>();
+                arrays[2] = new FactorDynamicArray<int>();
+                for (int i = 0; i < arrays.Length; i++)
+                {
+                    if (arrays[i] == null)
+                        break;
+                    timePoint = DateTime.Now;
+                    sw.Restart();
+                    putValues(arrays[i], N);
+                    sw.Stop();
+                    Console.WriteLine($"{arrays[i].Name}: {arrays[i].ReallocCount} {sw.ElapsedMilliseconds}  мс");
+                }
+
+            }
+        }
+
+        private static DateTime timePoint;
+        private const int DelayMS = 2000;
+        private static void Progress(int position, int count)
+        {
+            var dt = DateTime.Now;
+            if((dt - timePoint).TotalMilliseconds > DelayMS)
+            {
+                timePoint = dt;
+                Console.Write($"{position} of {count}");
+                Console.CursorLeft = 0;
+            }
         }
     }
 }
