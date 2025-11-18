@@ -68,7 +68,7 @@ namespace AlgoHW
             BigInteger res = BigInteger.Zero;
             depth++;
 
-            if(depth > depthLimit)
+            if (depth > depthLimit)
                 throw new InvalidOperationException("Recursion is too depth");
 
             if (N == 0) res = 0;
@@ -91,8 +91,8 @@ namespace AlgoHW
 
             if (N == 0) res = 0;
             else if (N < 3) res = 1;
-            if (N > target) res= FibonacciRecCached(N, cache2, cache1 + cache2, target + 1);
-            else res =  cache1 + cache2;
+            if (N > target) res = FibonacciRecCached(N, cache2, cache1 + cache2, target + 1);
+            else res = cache1 + cache2;
 
             depth--;
 
@@ -102,7 +102,7 @@ namespace AlgoHW
         public static BigInteger FibonacciIter(uint N)
         {
             if (N == 0) return 0;
-            var arTmp = new byte[1024*1024*1024];
+            var arTmp = new byte[1024 * 1024 * 1024];
             arTmp[0] = 1;
             BigInteger res = new(arTmp), cache = 1, tmp = cache;
             for (uint i = 2; i < N; i++)
@@ -171,10 +171,16 @@ namespace AlgoHW
             if (N < 4)
                 return N - 1;
 
-            uint res = 2;
-            for (uint i = 5; i <= N; i++)
-                if (method(i)) res++;
+            uint res = 2, counter = 0;
 
+            Parallel.For(5, N + 1, (i, state) =>
+            {
+                if (method((uint)i))
+                    Interlocked.Increment(ref res);
+
+                Interlocked.Increment(ref counter);
+                Test.SetChecker(counter, N);
+            });
             return res;
         }
 
@@ -269,33 +275,33 @@ namespace AlgoHW
             Console.WriteLine($"{AlgoPow.PowMul(1.1, 64):F100}");
 
             Console.WriteLine("<---PowIter tests--->");
-            //test.Run("Tests\\Power", AlgoPow.PowIter);
+            test.Run("Tests\\Power", AlgoPow.PowIter);
             Console.WriteLine(" <---PowMul tests--->");
             test.Run("Tests\\Power", AlgoPow.PowMul);
             Console.WriteLine("<---PowBinary tests--->");
             test.Run("Tests\\Power", AlgoPow.PowBinary);
             Console.WriteLine("***********************");
             Console.WriteLine("<---IsPrimeSimple tests--->");
-            //test.Run("Tests\\Primes", AlgoPrime.AmountOfPrimesSimple);
+            test.Run("Tests\\Primes", AlgoPrime.AmountOfPrimesSimple);
             Console.WriteLine("<---AmountOfPrimesOptimised1 tests--->");
-            //test.Run("Tests\\Primes", AlgoPrime.AmountOfPrimesOptimised1);
+            test.Run("Tests\\Primes", AlgoPrime.AmountOfPrimesOptimised1);
             Console.WriteLine("<---AmountOfPrimesOptimised2 tests--->");
-            //test.Run("Tests\\Primes", AlgoPrime.AmountOfPrimesOptimised2);
+            test.Run("Tests\\Primes", AlgoPrime.AmountOfPrimesOptimised2);
             Console.WriteLine("<---AmountOfPrimesOptimisedEr1 tests--->");
-            //test.Run("Tests\\Primes", AlgoPrime.AmountOfPrimesOptimisedEr1);
-            //Console.WriteLine("<---AmountOfPrimesOptimisedEr2 tests--->");
-            //test.Run("Tests\\Primes", AlgoPrime.AmountOfPrimesOptimisedEr2);
-            //Console.WriteLine("<---AmountOfPrimesOptimisedEr3 tests--->");
-            //test.Run("Tests\\Primes", AlgoPrime.AmountOfPrimesOptimisedEr3);
-            //Console.WriteLine("<---AmountOfPrimesOptimisedEr4 tests--->");
-            //test.Run("Tests\\Primes", AlgoPrime.AmountOfPrimesOptimisedEr4);
+            test.Run("Tests\\Primes", AlgoPrime.AmountOfPrimesOptimisedEr1);
+            Console.WriteLine("<---AmountOfPrimesOptimisedEr2 tests--->");
+            test.Run("Tests\\Primes", AlgoPrime.AmountOfPrimesOptimisedEr2);
+            Console.WriteLine("<---AmountOfPrimesOptimisedEr3 tests--->");
+            test.Run("Tests\\Primes", AlgoPrime.AmountOfPrimesOptimisedEr3);
+            Console.WriteLine("<---AmountOfPrimesOptimisedEr4 tests--->");
+            test.Run("Tests\\Primes", AlgoPrime.AmountOfPrimesOptimisedEr4);
             Console.WriteLine("***********************");
             Console.WriteLine("<---FibonacciIter tests--->");
             test.Run("Tests\\Fibo", AlgoFibonacci.FibonacciIter);
             Console.WriteLine("<---FibonacciReq tests--->");
-            //test.Run("Tests\\Fibo", AlgoFibonacci.FibonacciRec);
+            test.Run("Tests\\Fibo", AlgoFibonacci.FibonacciRec);
             Console.WriteLine("<---FibonacciReqCached tests--->");
-            //test.Run("Tests\\Fibo", AlgoFibonacci.FibonacciRecCachedWrapper);
+            test.Run("Tests\\Fibo", AlgoFibonacci.FibonacciRecCachedWrapper);
             Console.WriteLine("<---FibonacciGold tests--->");
             test.Run("Tests\\Fibo", AlgoFibonacci.FibonacciGold);
             Console.WriteLine("<---FibonacciMatr tests--->");
