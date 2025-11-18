@@ -266,6 +266,7 @@ namespace AlgoHW
         static void Main(string[] args)
         {
             Test test = new Test();
+            test.Run("Tests\\Fibo", AlgoFibonacci.FibonacciIter);
 
             Console.WriteLine($"{AlgoPow.PowIter(2, 64):F100}");
             Console.WriteLine($"{AlgoPow.PowMul(2, 64):F100}");
@@ -299,8 +300,7 @@ namespace AlgoHW
             test.Run("Tests\\Primes", AlgoPrime.AmountOfPrimesOptimisedEr4);
             Console.WriteLine("***********************");
             Console.WriteLine("<---FibonacciIter tests--->");
-            Console.WriteLine("SKIPPED");
-            //test.Run("Tests\\Fibo", AlgoFibonacci.FibonacciIter);
+            test.Run("Tests\\Fibo", AlgoFibonacci.FibonacciIter);
             Console.WriteLine("<---FibonacciReq tests--->");
             Console.WriteLine("SKIPPED");
             //test.Run("Tests\\Fibo", AlgoFibonacci.FibonacciRec);
