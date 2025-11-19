@@ -18,7 +18,7 @@ namespace AlgoHW
         static void Main(string[] args)
         {
             Stopwatch sw = new Stopwatch();
-            IDynamicArray<int>[] arrays = new IDynamicArray<int>[3];
+            IDynamicArray<int>[] arrays = new IDynamicArray<int>[4];
 
             for (int N = 100; N <= 1000000; N *= 10)
             {
@@ -26,6 +26,7 @@ namespace AlgoHW
                 arrays[0] = new SingleDynamicArray<int>();
                 arrays[1] = new VectorDynamicArray<int>();
                 arrays[2] = new FactorDynamicArray<int>();
+                arrays[3] = new MatrixDynamicArray<int>();
                 for (int i = 0; i < arrays.Length; i++)
                 {
                     if (arrays[i] == null)
