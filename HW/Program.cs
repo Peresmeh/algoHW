@@ -22,8 +22,9 @@ namespace AlgoHW
             SimpleDynamicQueue<int> queue = new(5);
             for (int i = 0; i < 7; i++)
                 queue.Enqueue(i);
-            Console.WriteLine($"{queue.Count} used from {queue.AllocSize}");
+            Console.WriteLine($"{queue.Count} used from {queue.AllocSize} ({queue.ReallocCount} alloctions)");
 
+            Console.WriteLine($"Make thousand operations");
             for (int i = 7; i < 1107; i++)
             {
                 queue.Enqueue(i);
@@ -31,23 +32,23 @@ namespace AlgoHW
                 if (i - deq != 7)
                     Console.WriteLine("Error");
             }
-            Console.WriteLine($"{queue.Count} used from {queue.AllocSize}");
+            Console.WriteLine($"{queue.Count} used from {queue.AllocSize} ({queue.ReallocCount} alloctions)");
 
             for (int i = 0; i < 7; i++)
                 queue.Enqueue(i);
 
-            Console.WriteLine($"{queue.Count} used from {queue.AllocSize}");
+            Console.WriteLine($"{queue.Count} used from {queue.AllocSize} ({queue.ReallocCount} alloctions)");
 
             for (int i = 0; i < 7; i++)
                 queue.Dequeue();
 
-            Console.WriteLine($"{queue.Count} used from {queue.AllocSize}");
+            Console.WriteLine($"{queue.Count} used from {queue.AllocSize} ({queue.ReallocCount} alloctions)");
             Console.Write("Dequeueing from 0 to 6:");
             for (int i = 0; i < 7; i++)
                 Console.Write($" {queue.Dequeue()}");
 
             Console.WriteLine();
-            Console.WriteLine($"{queue.Count} used from {queue.AllocSize}");
+            Console.WriteLine($"{queue.Count} used from {queue.AllocSize} ({queue.ReallocCount} alloctions)");
             Console.WriteLine($"Queue maust be empty at this point. Trying to get exception");
             try { queue.Dequeue(); }
             catch (InvalidOperationException)
