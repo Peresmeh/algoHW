@@ -8,12 +8,16 @@ using System.Threading.Tasks;
 
 namespace AlgoHW
 {
-    public interface IDynamicArray<T> //One-dimension dynamic array interface
+    public interface IDynamicMemoryStructure
     {
         int Count { get; }
-        int AllocSize { get; }
-        T this[int index] { get; set; }
         int ReallocCount { get; }
+        int AllocSize { get; }
+
+    }
+    public interface IDynamicArray<T> : IDynamicMemoryStructure//One-dimension dynamic array interface
+    {
+        T this[int index] { get; set; }
         string Name { get; }
 
         void Add(T item, int index);
@@ -44,8 +48,8 @@ namespace AlgoHW
             var tmp = new T[Count + 1];
             realocCount++;
             Array.Copy(container, 0, tmp, 0, index);
-            tmp[index] = item;
             Array.Copy(container, index, tmp, index + 1, Count - index);
+            tmp[index] = item;
             container = tmp;
         }
 
@@ -93,13 +97,13 @@ namespace AlgoHW
             T[] tmp;
             if (capacity == container.Length)
             {
-                tmp = new T[Count + vectorStep];
+                tmp = new T[AllocSize + vectorStep];
                 realocCount++;
             }
             else tmp = container;
             Array.Copy(container, 0, tmp, 0, index);
-            tmp[index] = item;
             Array.Copy(container, index, tmp, index + 1, Count - index);
+            tmp[index] = item;
             container = tmp;
             capacity++;
         }
@@ -111,7 +115,7 @@ namespace AlgoHW
             T[] tmp;
             if (container.Length - capacity - 1 == vectorStep)
             {
-                tmp = new T[Count - 1];
+                tmp = new T[AllocSize - vectorStep];
                 realocCount++;
             }
             else tmp = container;
@@ -153,7 +157,7 @@ namespace AlgoHW
             T[] tmp;
             if (capacity == container.Length)
             {
-                tmp = new T[Count * factorStep];
+                tmp = new T[AllocSize * factorStep];
                 realocCount++;
             }
             else tmp = container;
@@ -171,7 +175,7 @@ namespace AlgoHW
             T[] tmp;
             if ((container.Length - capacity - 1) % factorStep == 0)
             {
-                tmp = new T[Count / factorStep];
+                tmp = new T[AllocSize / factorStep];
                 realocCount++;
             }
             else tmp = container;
