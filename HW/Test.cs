@@ -53,8 +53,6 @@ namespace AlgoHW
                 if (input.Length > parameters.Length)
                     Console.WriteLine($"Тест {iter} ошибка: передано {input.Length} аргументов, а ожидалось {parameters.Length}");
 
-                string returnedString = "";
-                string expectedString = "";
                 try
                 {
                     object[] tparams = new object[parameters.Length];
@@ -64,26 +62,46 @@ namespace AlgoHW
                             .Invoke(null, [input[i].Replace(System.Globalization.NumberFormatInfo.InvariantInfo.NumberDecimalSeparator, System.Globalization.NumberFormatInfo.CurrentInfo.NumberDecimalSeparator)]);
                     }
 
-                    string formater = "0";
-                    var tmp = output[0].Replace(System.Globalization.NumberFormatInfo.InvariantInfo.NumberDecimalSeparator, System.Globalization.NumberFormatInfo.CurrentInfo.NumberDecimalSeparator);
-                    if (tmp.Contains(System.Globalization.NumberFormatInfo.CurrentInfo.NumberDecimalSeparator))
-                    {
-                        int len = tmp.Length - tmp.IndexOf(System.Globalization.NumberFormatInfo.CurrentInfo.NumberDecimalSeparator) - 1;
-                        StringBuilder lbldr = new(".");
-                        for (int i = 0; i < len; i++) lbldr.Append('0');
-                        formater = lbldr.ToString();
-                    }
+                    string[] formater = new string[output.Length];
+                    Array.Fill(formater, "0");
 
+                    for (int j = 0; j < output.Length; j++)
+                    {
+                        var tmp = output[j].Replace(System.Globalization.NumberFormatInfo.InvariantInfo.NumberDecimalSeparator, System.Globalization.NumberFormatInfo.CurrentInfo.NumberDecimalSeparator);
+                        if (tmp.Contains(System.Globalization.NumberFormatInfo.CurrentInfo.NumberDecimalSeparator))
+                        {
+                            int len = tmp.Length - tmp.IndexOf(System.Globalization.NumberFormatInfo.CurrentInfo.NumberDecimalSeparator) - 1;
+                            StringBuilder lbldr = new(".");
+                            for (int i = 0; i < len; i++) lbldr.Append('0');
+                            formater[j] = lbldr.ToString();
+                        }
+                    }
                     sw.Restart();
                     object returnedValue = test.DynamicInvoke(tparams);
                     sw.Stop();
-                    object expectedValue = test.GetMethodInfo().ReturnParameter.ParameterType
+                    object[] expectedValues = null;
+                    var retInfo = test.GetMethodInfo().ReturnParameter.ParameterType;
+                    object[] returnedValues;
+                    if (retInfo.IsArray)
+                    {
+                    }
+                    else
+                    {
+                        returnedValues = [returnedValue];
+                        expectedValues = [retInfo
                         .GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, [typeof(string)])
-                            .Invoke(null, [tmp]);
-
+                            .Invoke(null, [formater[0]])];
+                    }
                     var stringer = test.GetMethodInfo().ReturnType.GetMethod("ToString", BindingFlags.Public | BindingFlags.Instance, [typeof(string)]);
-                    returnedString = (string)stringer.Invoke(returnedValue, [formater]);
-                    expectedString = (string)stringer.Invoke(expectedValue, [formater]);
+
+                    string[] returnedStrings = new string[expectedValues.Length];
+                    string[] expectedStrings = new string[output.Length];
+
+                    for (int i = 0; i < returnedStrings.Length; i++)
+                    {
+                        returnedStrings[i] = (string)stringer.Invoke(returnedValue, [formater]);
+                        expectedStrings[i] = (string)stringer.Invoke(expectedValues[i], [formater]);
+                    }
                 }
                 catch (Exception pe)
                 {
