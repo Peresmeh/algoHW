@@ -27,18 +27,53 @@ namespace AlgoHW
             }
             return res;
         }
-
-        static object[] get(int i)
+        internal static int GetOnesSimple(ulong value)
         {
-            return [(int)1, (ulong)3];
+            int res = 0;
+            for (int i = 0; i < 64; i++)
+            {
+                if ((value & (1ul << i)) != 0) res++;
+            }
+            return res;
         }
 
+        private static byte[] oneCached;
+        internal static int GetOnesCached(ulong value)
+        {
+            int res = 0;
+            for (int i = 0; i < 8; i++)
+                res += oneCached[(value >> (8 * i)) & 0xfful];
+            return res;
+        }
+
+        static Program()
+        { 
+            oneCached = new byte[256];
+            for (uint i = 0; i < 256; i++)
+                oneCached[i] = (byte)GetOnes(i);
+        }
 
         static void Main(string[] args)
         {
             Test test = new Test();
-            List<Chess> figs = new();
-            figs.Add(new ChessKing());
+            List<Chess> figs =
+            [
+                new ChessKing(),
+                new ChessKnight(),
+                new ChessRook(),
+                new ChessBishop(),
+                new ChessQueen(),
+            ];
+
+            Func<Func<int, ulong>, Func<int, object[]>> testMerger = testFunctor =>
+            {
+                Func<int, object[]> retFunctor = position =>
+                {
+                    ulong res = testFunctor(position);
+                    return [GetOnesSimple(res), res];
+                };
+                return retFunctor;
+            };
 
             foreach (Chess chess in figs)
             {
@@ -48,7 +83,7 @@ namespace AlgoHW
                 else
                 {
                     Console.WriteLine($"Tests for chess {chess.Name}");
-                    test.Run(path, get);// chess.GetPositionMask);
+                    test.Run(path, testMerger(chess.GetPositionMask));
                 }
             }
         }

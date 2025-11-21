@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -53,6 +54,9 @@ namespace AlgoHW
                 if (input.Length > parameters.Length)
                     Console.WriteLine($"Тест {iter} ошибка: передано {input.Length} аргументов, а ожидалось {parameters.Length}");
 
+                string[] returnedStrings = null;
+                string[] expectedStrings = null;
+
                 try
                 {
                     object[] tparams = new object[parameters.Length];
@@ -82,26 +86,40 @@ namespace AlgoHW
                     object[] expectedValues = null;
                     var retInfo = test.GetMethodInfo().ReturnParameter.ParameterType;
                     object[] returnedValues;
+                    expectedValues = new object[output.Length];
                     if (retInfo.IsArray)
                     {
+                        returnedValues = new object[(returnedValue as Array).Length];
+                        for (int i = 0; i < returnedValues.Length; i++)
+                            returnedValues[i] = (returnedValue as Array).GetValue(i);
+                        for (int i = 0; i < expectedValues.Length; i++)
+                        {
+                            if (i < returnedValues.Length)
+                                expectedValues[i] = returnedValues[i].GetType().GetRuntimeMethod("Parse", [typeof(string)]).Invoke(null, [output[i]]);
+                            else
+                                expectedValues[i] = null;
+                        }
                     }
                     else
                     {
                         returnedValues = [returnedValue];
-                        expectedValues = [retInfo
-                        .GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, [typeof(string)])
-                            .Invoke(null, [formater[0]])];
+                        Array.Fill(expectedValues, null);
+                        expectedValues[0] = retInfo.GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, [typeof(string)]).Invoke(null, [output[0]]);
                     }
-                    var stringer = test.GetMethodInfo().ReturnType.GetMethod("ToString", BindingFlags.Public | BindingFlags.Instance, [typeof(string)]);
+                    MethodInfo[] stringer;
 
-                    string[] returnedStrings = new string[expectedValues.Length];
-                    string[] expectedStrings = new string[output.Length];
+                    returnedStrings = new string[returnedValues.Length];
+                    stringer = new MethodInfo[returnedValues.Length];
+                    expectedStrings = new string[output.Length];
 
                     for (int i = 0; i < returnedStrings.Length; i++)
                     {
-                        returnedStrings[i] = (string)stringer.Invoke(returnedValue, [formater]);
-                        expectedStrings[i] = (string)stringer.Invoke(expectedValues[i], [formater]);
+                        stringer[i] = returnedValues[i].GetType().GetRuntimeMethod("ToString", [typeof(string)]);
+                        returnedStrings[i] = (string)stringer[i].Invoke(returnedValues[i], [formater[i]]);
                     }
+                    for (int i = 0; i < expectedStrings.Length; i++)
+                        if ((expectedValues[i] != null) && (i < stringer.Length)) expectedStrings[i] = (string)stringer[i].Invoke(expectedValues[i], [formater[i]]);
+                        else expectedStrings[i] = output[i];
                 }
                 catch (Exception pe)
                 {
@@ -110,40 +128,78 @@ namespace AlgoHW
                     continue;
                 }
 
-                ResultOutput(iter, returnedString, expectedString, sw.ElapsedTicks);
+                ResultOutput(iter, returnedStrings, expectedStrings, sw.ElapsedTicks);
                 iter++;
             }
         }
 
-        private static void ResultOutput(int iter, string actual, string expected, long ticks)
+        private static bool ShortCheck(string[] actual, string[] expected)
         {
-            if (actual.Equals(expected))
+            if (actual.Length == expected.Length)
             {
-                if (actual.Length < 20)
-                    Console.WriteLine($"Тест {iter} OK: {actual} (завершено за {ticks:###,###,###,###,###,###,###,###,###} тиков)");
-                else
-                {
-                    var color = Console.ForegroundColor;
-                    Console.Write($"Тест {iter} OK: ");
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.Write($"{actual.Substring(0, 9)}...{actual.Substring(actual.Length - 9)}");
-                    Console.ForegroundColor = color;
-                    Console.WriteLine($" (завершено за {ticks:###,###,###,###,###,###,###,###,###} тиков)");
+                for (int i = 0; i < expected.Length; i++)
+                    if (!actual[i].Equals(expected[i]))
+                        return false;
+            }
+            else
+                return false;
 
+            return true;
+
+        }
+
+        private static void WriteShortForm(string output, int length, ConsoleColor normalColor, ConsoleColor shortColor)
+        {
+            var color = Console.ForegroundColor;
+            if (output.Length < length)
+            {
+                Console.Write($"{output}");
+                Console.ForegroundColor = normalColor;
+            }
+            else
+            {
+                Console.ForegroundColor = shortColor;
+                Console.Write($"{output.Substring(0, output.Length / 2 - 1)}...{output.Substring(output.Length - (output.Length / 2 - 1))} ");
+            }
+            Console.ForegroundColor = color;
+        }
+
+        private static void ResultOutput(int iter, string[] actual, string[] expected, long ticks)
+        {
+            if (ShortCheck(actual, expected))
+            {
+                Console.Write($"Тест {iter} OK: ");
+
+                for (int i = 0; i < expected.Length; i++)
+                {
+                    WriteShortForm($"{expected[i]} ", 40, Console.ForegroundColor, ConsoleColor.Yellow);
                 }
             }
             else
             {
-                var color = Console.ForegroundColor;
-                string common = string.Concat(actual.TakeWhile((c, i) => i < Math.Min(actual.Length, expected.Length) && (c == expected[i])));
-                Console.Write($"Тест {iter} ошибка: {actual} ожидалось: ");
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.Write(common);
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write(expected.Substring(common.Length));
-                Console.ForegroundColor = color;
-                Console.WriteLine($" (завершено за {ticks:###,###,###,###,###,###,###,###,###} тиков)");
+                Console.WriteLine($"Тест {iter} ошибка: ");
+                for (int i = 0; i < Math.Max(actual.Length, expected.Length); i++)
+                {
+                    var color = Console.ForegroundColor;
+
+                    if ((actual.Length > i) && (expected.Length > i) && (actual.Equals(expected)))
+                    {
+                        WriteShortForm($"{expected[i]} ", 40, ConsoleColor.Green, ConsoleColor.Green);
+                    }
+                    else
+                    {
+                        Console.Write("Результат: ");
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        WriteShortForm($"{((i >= actual.Length) || (actual[i] == null) ? "Null" : actual[i])}", 40, ConsoleColor.Red, ConsoleColor.Red);
+                        Console.Write(" ожидалось ");
+                        WriteShortForm($"{((i >= expected.Length) || (expected[i] == null) ? "Null" : expected[i])}", 40, Console.ForegroundColor, Console.ForegroundColor);
+                        Console.WriteLine();
+                    }
+                    Console.ForegroundColor = color;
+
+                }
             }
+            Console.WriteLine($" (завершено за {ticks:###,###,###,###,###,###,###,###,###} тиков)");
         }
         private static void ResultOutput(int iter, Exception ex)
         {
