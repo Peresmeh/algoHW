@@ -70,7 +70,7 @@ namespace AlgoHW
                 Func<int, object[]> retFunctor = position =>
                 {
                     ulong res = testFunctor(position);
-                    return [GetOnesSimple(res), res];
+                    return [GetOnesCached(res), res];
                 };
                 return retFunctor;
             };
