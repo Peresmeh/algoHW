@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO.Pipes;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -10,6 +11,78 @@ using System.Threading.Tasks;
 
 namespace AlgoHW
 {
+
+    [AttributeUsage(AttributeTargets.Property)]
+    public class MetricAttribute : Attribute
+    {
+        public string MetricName { get; }
+        public string OutputFormat { get; }
+
+        public MetricAttribute(string metricName, string outputFormat = "#")
+        {
+            MetricName = metricName;
+            OutputFormat = outputFormat;
+        }
+
+        public static Dictionary<string, string> GetMetrics(object source)
+        {
+            Dictionary<string, string> ret = new Dictionary<string, string>();
+            foreach (var property in source.GetType().GetRuntimeProperties())
+            {
+                var attr = property.GetCustomAttribute<MetricAttribute>();
+                if (attr != null)
+                {
+                    ret[attr.MetricName] = string.Format($"{{0:{attr.OutputFormat}}}", property.GetValue(source));
+                }
+            }
+            return ret;
+        }
+    }
+    [AttributeUsage(AttributeTargets.Method)]
+    public class MetricTestAttribute : Attribute
+    {
+        public string TestPathMask { get; }
+
+        public MetricTestAttribute(string testPathMask)
+        {
+            TestPathMask = testPathMask;
+        }
+        private static Delegate CreateDelegate(MethodInfo methodInfo, object target)
+        {
+            Func<Type[], Type> getType;
+            var isAction = methodInfo.ReturnType.Equals((typeof(void)));
+            var types = methodInfo.GetParameters().Select(p => p.ParameterType);
+            if (isAction)
+            {
+                getType = Expression.GetActionType;
+            }
+            else
+            {
+                getType = Expression.GetFuncType;
+                types = types.Concat(new[] { methodInfo.ReturnType });
+            }
+            if (methodInfo.IsStatic)
+            {
+                return Delegate.CreateDelegate(getType(types.ToArray()), methodInfo);
+            }
+            return Delegate.CreateDelegate(getType(types.ToArray()), target, methodInfo.Name);
+        }
+        public static Delegate GetTestDelegate(object source)
+        {
+            Delegate ret = null;
+            var methods = source.GetType().GetRuntimeMethods();
+            foreach (var method in methods)
+            {
+                if (method.GetCustomAttribute<MetricTestAttribute>() != null)
+                {
+                    ret = CreateDelegate(method, source); break;
+                }
+            }
+            return ret;
+        }
+    }
+
+
     internal class Test
     {
         public void Run(string path, Func<string[], string> run)

@@ -56,36 +56,16 @@ namespace AlgoHW
         static void Main(string[] args)
         {
             Test test = new Test();
-            List<Chess> figs =
-            [
-                new ChessKing(),
-                new ChessKnight(),
-                new ChessRook(),
-                new ChessBishop(),
-                new ChessQueen(),
-            ];
-
-            Func<Func<int, ulong>, Func<int, object[]>> testMerger = testFunctor =>
-            {
-                Func<int, object[]> retFunctor = position =>
-                {
-                    ulong res = testFunctor(position);
-                    return [GetOnesCached(res), res];
-                };
-                return retFunctor;
-            };
-
-            foreach (Chess chess in figs)
-            {
-                string path = GetTestPath(chess.Name);
+            SorterBase sorter = new SorterBase();
+            var tt = MetricAttribute.GetMetrics(sorter);
+/*                string path = GetTestPath(chess.Name);
                 if (string.IsNullOrEmpty(path))
                     Console.WriteLine($"Couldn't find tests for chess {chess.Name}");
                 else
                 {
                     Console.WriteLine($"Tests for chess {chess.Name}");
                     test.Run(path, testMerger(chess.GetPositionMask));
-                }
-            }
+                }*/
         }
     }
 }
