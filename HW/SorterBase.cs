@@ -8,11 +8,12 @@ namespace AlgoHW
 {
     public abstract class SorterBase
     {
-        [Metric("Equals")]
-        public int Equalities { get; }
-        [Metric("Actions")]
-        public int Actions { get; }
+        [Metric("Compares")]
+        public int Compares { get; }
+        [Metric("Changes")]
+        public int Changes { get; }
     }
 
+    public
 
 }
