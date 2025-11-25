@@ -56,16 +56,12 @@ namespace AlgoHW
         static void Main(string[] args)
         {
             Test test = new Test();
-            SorterBase sorter = new SorterBase();
-            var tt = MetricAttribute.GetMetrics(sorter);
-/*                string path = GetTestPath(chess.Name);
-                if (string.IsNullOrEmpty(path))
-                    Console.WriteLine($"Couldn't find tests for chess {chess.Name}");
-                else
-                {
-                    Console.WriteLine($"Tests for chess {chess.Name}");
-                    test.Run(path, testMerger(chess.GetPositionMask));
-                }*/
+
+            SorterBase<int> sorter = new ShellSort<int>((index, len)=>len / (2*(index+1)));
+            test.Run("Tests\\0.random", sorter);//, TimeSpan.FromSeconds(20));
+            SorterBase<int> sorter1 = new BubbleSortOptimised<int>();
+            test.Run("Tests\\0.random", sorter1, TimeSpan.FromSeconds(20));
+
         }
     }
 }

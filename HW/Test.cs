@@ -5,6 +5,7 @@ using System.Drawing;
 using System.IO.Pipes;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,7 +19,7 @@ namespace AlgoHW
         public string MetricName { get; }
         public string OutputFormat { get; }
 
-        public MetricAttribute(string metricName, string outputFormat = "#")
+        public MetricAttribute(string metricName, string outputFormat = "0")
         {
             MetricName = metricName;
             OutputFormat = outputFormat;
@@ -32,7 +33,8 @@ namespace AlgoHW
                 var attr = property.GetCustomAttribute<MetricAttribute>();
                 if (attr != null)
                 {
-                    ret[attr.MetricName] = string.Format($"{{0:{attr.OutputFormat}}}", property.GetValue(source));
+                    var format = $"{{0:{attr.OutputFormat}}}";
+                    ret[attr.MetricName] = string.Format(format, property.GetValue(source));
                 }
             }
             return ret;
@@ -42,10 +44,14 @@ namespace AlgoHW
     public class MetricTestAttribute : Attribute
     {
         public string TestPathMask { get; }
+        public bool ResultIsParameter { get; }
+        public int ResultParameter { get; }
 
-        public MetricTestAttribute(string testPathMask)
+        public MetricTestAttribute(string testPathMask, bool resultIsParameter = false, int resultParameter = 0)
         {
             TestPathMask = testPathMask;
+            ResultIsParameter = resultIsParameter;
+            ResultParameter = resultParameter;
         }
         private static Delegate CreateDelegate(MethodInfo methodInfo, object target)
         {
@@ -80,11 +86,178 @@ namespace AlgoHW
             }
             return ret;
         }
+
+        public static MetricTestAttribute GetTestAttribute(object source)
+        {
+            MetricTestAttribute ret = null;
+            var methods = source.GetType().GetRuntimeMethods();
+            foreach (var method in methods)
+            {
+                ret = method.GetCustomAttribute<MetricTestAttribute>();
+                if (ret != null) break;
+            }
+            return ret;
+        }
+
     }
+
 
 
     internal class Test
     {
+        private string[] input, output;
+        private List<object> parameters = new();
+        private List<Type> parameterTypes = new();
+
+        private List<string> outputVals = new();
+        private List<string> expectedVals = new();
+
+        private Delegate runner = null;
+
+        private bool LoadTest(string path, int iteration)
+        {
+            string fileIn = $"{path}\\test.{iteration}.in";
+            string fileOut = $"{path}\\test.{iteration}.out";
+            if (!File.Exists(fileIn) || !File.Exists(fileOut))
+                return false;
+
+            input = File.ReadAllLines(fileIn);
+            output = File.ReadAllLines(fileOut);
+
+            ParseParameters();
+
+            return true;
+        }
+
+        private void ParseParameters()
+        {
+            parameters.Clear();
+            int off = 0;
+            for (int i = 0; i < parameterTypes.Count; i++)
+            {
+                if (parameterTypes[i].IsArray)
+                {
+                    int len = int.Parse(input[off]);
+                    off++;
+                    var elType = parameterTypes[i].GetElementType();
+                    parameters.Add(Array.CreateInstance(elType, len));
+                    var tegs = input[off].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    if (tegs.Length != len) throw new InvalidDataException("Количество элементов не соответсвует длине массива");
+                    for (int j = 0; j < len; j++)
+                    {
+                        object box = elType.GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, [typeof(string)])
+                            .Invoke(null, [tegs[j].Replace(System.Globalization.NumberFormatInfo.InvariantInfo.NumberDecimalSeparator, System.Globalization.NumberFormatInfo.CurrentInfo.NumberDecimalSeparator)]);
+                        (parameters[i] as Array).SetValue(box, j);
+                    }
+                }
+                else
+                {
+                    parameters.Add(parameterTypes[i].GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, [typeof(string)])
+                        .Invoke(null, [input[i].Replace(System.Globalization.NumberFormatInfo.InvariantInfo.NumberDecimalSeparator, System.Globalization.NumberFormatInfo.CurrentInfo.NumberDecimalSeparator)]));
+                }
+                off++;
+            }
+        }
+
+        private void ParseResult(object result)
+        {
+            outputVals.Clear();
+            expectedVals.Clear();
+
+            string[] source;
+            if (result.GetType().IsArray)
+            {
+                if (output.Length == 1)
+                {
+                    var tegs = output[0].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    if (tegs.Length != (result as Array).Length)
+                        throw new InvalidDataException("Количество элементов не соответсвует длине массива");
+                    source = tegs;
+                }
+                else
+                {
+                    if (output.Length != (result as Array).Length)
+                        throw new InvalidDataException("Количество элементов не соответсвует длине массива");
+
+                    source = output;
+                }
+
+                for (int i = 0; i < source.Length; i++)
+                {
+                    expectedVals.Add((result as Array).GetValue(i).ToString());
+                    outputVals.Add(source[i]);
+                }
+
+            }
+            else
+            {
+                outputVals.Add(result.ToString());
+                expectedVals.Add(output[0]);
+            }
+        }
+
+        private void InitTest(object source)
+        {
+            runner = MetricTestAttribute.GetTestDelegate(source);
+            if (runner == null) return;
+
+            parameterTypes.Clear();
+            parameters.Clear();
+            foreach (var param in runner.Method.GetParameters())
+                parameterTypes.Add(param.ParameterType);
+        }
+
+        private static CancellationTokenSource cts = new();
+        private static Task testTask = Task.CompletedTask;
+
+        public void Run(string path, object source, TimeSpan? timeout = null)
+        {
+            int iter = 0;
+            Stopwatch sw = new();
+
+            InitTest(source);
+            if (runner == null) return;
+
+            while (LoadTest(path, iter))
+            {
+                ParseParameters();
+
+                cts.Cancel();
+
+                if (!timeout.HasValue)
+                    cts = new CancellationTokenSource();
+                else
+                    cts = new CancellationTokenSource(timeout.Value);
+                object? result = null;
+                testTask = Task.Run(() =>
+                {
+                    sw.Start();
+                    result = runner.DynamicInvoke(parameters.ToArray());
+                    sw.Stop();
+                }, cts.Token);
+
+                try
+                {
+                    testTask.Wait();
+                    var attr = MetricTestAttribute.GetTestAttribute(source);
+                    if (attr.ResultIsParameter)
+                        ParseResult(parameters[attr.ResultParameter]);
+                    else
+                        ParseResult(result);
+                }
+                catch (Exception ex)
+                {
+                    ResultOutput(iter, ex);
+                    iter++;
+                    continue;
+                }
+
+                ResultOutput(iter, outputVals.ToArray(), expectedVals.ToArray(), sw.ElapsedTicks, false, MetricAttribute.GetMetrics(source));
+                iter++;
+            }
+        }
+
+
         public void Run(string path, Func<string[], string> run)
         {
             int iter = 0;
@@ -237,15 +410,25 @@ namespace AlgoHW
             Console.ForegroundColor = color;
         }
 
-        private static void ResultOutput(int iter, string[] actual, string[] expected, long ticks)
+        private static void ResultOutput(int iter, string[] actual, string[] expected, long ticks, bool showDetailedResult = true, Dictionary<string, string> metrics = null)
         {
             if (ShortCheck(actual, expected))
             {
                 Console.Write($"Тест {iter} OK: ");
-
-                for (int i = 0; i < expected.Length; i++)
+                if (showDetailedResult)
                 {
-                    WriteShortForm($"{expected[i]} ", 40, Console.ForegroundColor, ConsoleColor.Yellow);
+                    for (int i = 0; i < expected.Length; i++)
+                    {
+                        WriteShortForm($"{expected[i]} ", 40, Console.ForegroundColor, ConsoleColor.Yellow);
+                    }
+                }
+
+                if (metrics != null)
+                {
+                    foreach (var metric in metrics)
+                    {
+                        Console.Write($"{metric.Key}: {metric.Value} ");
+                    }
                 }
             }
             else
@@ -276,6 +459,7 @@ namespace AlgoHW
         }
         private static void ResultOutput(int iter, Exception ex)
         {
+            if(ex.InnerException != null) ex = ex.InnerException;
             Console.WriteLine($"Тест {iter} ошибка: {ex.Message}");
         }
 
@@ -299,6 +483,8 @@ namespace AlgoHW
                     Console.SetCursorPosition(0, Console.CursorTop);
                 }
             }
+
+            cts.Token.ThrowIfCancellationRequested();
         }
     }
 }
