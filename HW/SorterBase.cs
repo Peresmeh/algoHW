@@ -12,6 +12,8 @@ namespace AlgoHW
         protected T[] array;
         protected ulong changes, compares;
 
+        public abstract string Name { get; }
+
         [Metric("Compares")]
         public ulong Compares => compares;
 
@@ -60,6 +62,7 @@ namespace AlgoHW
 
     public class BubbleSort<T> : SorterBase<T> where T : IComparable
     {
+        public override string Name => "Bubble";
         protected override void PerformSorting()
         {
             for (int i = array.Length - 1; i > 0; i--)
@@ -74,6 +77,7 @@ namespace AlgoHW
     }
     public class BubbleSortOptimised<T> : SorterBase<T> where T : IComparable
     {
+        public override string Name => "Optimised Bubble";
         protected override void PerformSorting()
         {
             int lastSwap;
@@ -94,6 +98,8 @@ namespace AlgoHW
     }
     public class InsertSort<T> : SorterBase<T> where T : IComparable
     {
+        public override string Name => "Insert";
+
         protected override void PerformSorting()
         {
             for (int i = 1; i < array.Length; i++)
@@ -109,6 +115,7 @@ namespace AlgoHW
 
     public class InsertSortShift<T> : SorterBase<T> where T : IComparable
     {
+        public override string Name => "Insert with shift";
         protected override void PerformSorting()
         {
             T tmp;
@@ -130,6 +137,7 @@ namespace AlgoHW
     }
     public class InsertSortBisection<T> : SorterBase<T> where T : IComparable
     {
+        public override string Name => "Insert with bisection";
         private int Bisection(T key, int l, int r)
         {
             if (r <= l)
@@ -170,6 +178,10 @@ namespace AlgoHW
 
     public class ShellSort<T> : SorterBase<T> where T : IComparable
     {
+        public override string Name => string.IsNullOrEmpty(PredicateName) ? "Shell" : $"Shell with {PredicateName} predicate";
+
+        public string PredicateName { get; set; } = "";
+
         Func<int, int, int> gapPredicate;
         public ShellSort(Func<int, int, int> predicate)
         {
@@ -178,58 +190,21 @@ namespace AlgoHW
 
         protected override void PerformSorting()
         {
-            for (int i = 0; gapPredicate(i, array.Length) > 0; i++)
-            {
-                int gap = gapPredicate(i, array.Length);
-                int gapnext = gapPredicate(i + 1, array.Length);
-
-                for (int j = gap; j < array.Length; j++)
-                    for (int k = j; k >= gap && MoreOff(k - gap, k); k -= gap)
-                        Swap(k - gap, k);
-
-                Test.SetChecker(array.Length - i, array.Length);
-            }
-        }
-    }
-    public class ShellSortParallel<T> : SorterBase<T> where T : IComparable
-    {
-        private Func<int, int, int> gapPredicate;
-        private SorterBase<T> sorterAlgo;
-
-        public ShellSortParallel(Func<int, int, int> predicate, SorterBase<T> sorter)
-        {
-            gapPredicate = predicate;
-            sorterAlgo = sorter;    
-        }
-
-        protected override void PerformSorting()
-        {
             int gap = gapPredicate(0, array.Length);
-            while (gap > 0)
+            for (int i = 0; gap > 0; i++)
             {
-                int limit = array.Length / gap;
-                //                Parallel.For(0, limit, index => { 
-                for (int index = 0; index < limit; index++)
-                    for (int i = index * gap; i <= Math.Min(index * (gap + 1), array.Length); i++)
-                    {
-                        sorterAlgo.Sort(new Span<T>(array, i, Math.Min(index * (gap + 1), array.Length)));
-                    }
-                //              });
-            }
-
-            for (int i = 0; gapPredicate(i, array.Length) > 0; i++)
-            {
-                int gap = gapPredicate(i, array.Length);
-                int gapnext = gapPredicate(i + 1, array.Length);
+                gap = gapPredicate(i, array.Length);
 
                 for (int j = gap; j < array.Length; j++)
+                {
                     for (int k = j; k >= gap && MoreOff(k - gap, k); k -= gap)
                         Swap(k - gap, k);
+                    Test.SetChecker(array.Length - i, array.Length);
+                }
 
                 Test.SetChecker(array.Length - i, array.Length);
+                if (gap == 1) break;
             }
         }
     }
-
-
 }

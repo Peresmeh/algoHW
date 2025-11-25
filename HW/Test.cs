@@ -459,7 +459,7 @@ namespace AlgoHW
         }
         private static void ResultOutput(int iter, Exception ex)
         {
-            if(ex.InnerException != null) ex = ex.InnerException;
+            while (ex.InnerException != null) ex = ex.InnerException;
             Console.WriteLine($"Тест {iter} ошибка: {ex.Message}");
         }
 
