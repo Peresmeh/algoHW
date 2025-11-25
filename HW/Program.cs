@@ -113,7 +113,7 @@ namespace AlgoHW
                 Console.WriteLine($"\n*****************************PERFORMING TESTS {path}*****************************");
                 foreach (var sorter in sorters)
                 {
-                    Console.WriteLine($"Testing {sorter.Name} sorter");
+                    Console.WriteLine($"\nTesting {sorter.Name} sorter");
                     test.Run(path, sorter, timeout);
                 }
             }
