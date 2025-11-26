@@ -14,7 +14,7 @@ namespace AlgoHW
 
         public abstract string Name { get; }
 
-        [Metric("Compares")]
+        [Metric("Compares", ",-14:D")]
         public ulong Compares => compares;
 
         [Metric("Changes")]

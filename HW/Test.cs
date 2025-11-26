@@ -19,7 +19,7 @@ namespace AlgoHW
         public string MetricName { get; }
         public string OutputFormat { get; }
 
-        public MetricAttribute(string metricName, string outputFormat = "0")
+        public MetricAttribute(string metricName, string outputFormat = ":0")
         {
             MetricName = metricName;
             OutputFormat = outputFormat;
@@ -33,7 +33,7 @@ namespace AlgoHW
                 var attr = property.GetCustomAttribute<MetricAttribute>();
                 if (attr != null)
                 {
-                    var format = $"{{0:{attr.OutputFormat}}}";
+                    var format = $"{{0{attr.OutputFormat}}}";
                     ret[attr.MetricName] = string.Format(format, property.GetValue(source));
                 }
             }
