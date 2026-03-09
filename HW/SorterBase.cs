@@ -12,6 +12,8 @@ namespace AlgoHW
         protected T[] array;
         protected ulong changes, compares;
 
+        public override string ToString() => Name;
+
         public abstract string Name { get; }
 
         [Metric("Compares")]
@@ -204,6 +206,58 @@ namespace AlgoHW
 
                 Test.SetChecker(array.Length - i, array.Length);
                 if (gap == 1) break;
+            }
+        }
+    }
+
+    public class SelectionSort<T> : SorterBase<T> where T : IComparable
+    {
+        public override string Name => "Selection";
+        protected override void PerformSorting()
+        {
+            int key = 0, limit = array.Length;
+
+            while (limit > 1)
+            {
+                for (int i = 1; i < limit; i++)
+                {
+                    if (MoreOff(i, key)) key = i;
+
+                    Test.SetChecker(array.Length - limit, array.Length);
+                }
+                Swap(key, limit - 1);
+                key = 0;
+                limit--;
+            }
+        }
+    }
+
+    public class PyramidSort<T> : SorterBase<T> where T : IComparable
+    {
+        public override string Name => "Pyramid";
+
+        private void RebuildHeap(int root, int limit)
+        {
+            int leafIndex = root;
+            int left = 2 * root + 1;
+            int right = 2 * root + 2;
+            if ((left < limit) && MoreOff(left, leafIndex)) leafIndex = left;
+            if ((right < limit) && MoreOff(right, leafIndex)) leafIndex = right;
+            if (leafIndex == root) return;
+            Swap(leafIndex, root);
+            RebuildHeap(leafIndex, limit);
+        }
+
+        protected override void PerformSorting()
+        {
+            for (int i = array.Length / 2 - 1; i >= 0; i--)
+                RebuildHeap(i, array.Length);
+
+            for (int i = array.Length - 1; i >= 1; i--)
+            {
+                Test.SetChecker(array.Length - i, array.Length);
+                Swap(0, i);
+                RebuildHeap(0, i);
             }
         }
     }

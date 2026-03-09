@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO.Pipes;
@@ -210,6 +211,110 @@ namespace AlgoHW
         private static CancellationTokenSource cts = new();
         private static Task testTask = Task.CompletedTask;
 
+        private Dictionary<object, Dictionary<string, (long, List<(string, string)>)>> resultTable = new();
+
+        public void ResetMetricsResult()
+        {
+            resultTable.Clear();
+        }
+
+        private static string FitCellSimple(string s, int width = 20)
+        {
+            if (s == null) s = "";
+            if (s.Length > width) s = s.Substring(0, width - 3) + "...";
+            return s.PadRight(width);
+        }
+
+        public void BuildMetricsResult()
+        {
+            List<string> metrics = new();
+            foreach (var test in resultTable.Values)
+                foreach (var iter in test.Values)
+                {
+                    foreach (var metric in iter.Item2)
+                        if (!metrics.Contains(metric.Item1))
+                            metrics.Add(metric.Item1);
+                }
+
+
+            StringBuilder bldr = new();
+            foreach (var metric in metrics)
+            {
+                Console.WriteLine($"\nMetric summary for {metric}");
+                Console.WriteLine("------------------------------------------");
+                bldr.Clear();
+                bldr.Append(FitCellSimple("Тест")).Append('|');
+                foreach (var iter in resultTable.First().Value.Keys)
+                {
+                    bldr.Append(FitCellSimple(iter, 15)).Append('|');
+                }
+
+                Console.WriteLine(bldr.ToString());
+                foreach (var test in resultTable)
+                {
+                    bldr.Clear();
+                    bldr.Append(FitCellSimple(test.Key.ToString())).Append('|');
+                    foreach (var iter in test.Value.Values)
+                    {
+                        foreach (var metricItem in iter.Item2)
+                            if (metricItem.Item1 == metric)
+                                bldr.Append(FitCellSimple(metricItem.Item2, 15)).Append('|');
+                    }
+                    Console.WriteLine(bldr.ToString());
+                }
+            }
+            Console.WriteLine($"\nPerformance summaryin tics");
+            Console.WriteLine("------------------------------------------");
+            bldr.Clear();
+            bldr.Append(FitCellSimple("Тест")).Append('|');
+            foreach (var iter in resultTable.First().Value.Keys)
+            {
+                bldr.Append(FitCellSimple(iter, 15)).Append('|');
+            }
+
+            Console.WriteLine(bldr.ToString());
+            foreach (var test in resultTable)
+            {
+                bldr.Clear();
+                bldr.Append(FitCellSimple(test.Key.ToString())).Append('|');
+                foreach (var iter in test.Value.Values)
+                {
+                    bldr.Append(FitCellSimple(iter.Item1.ToString(), 15)).Append('|');
+                }
+                Console.WriteLine(bldr.ToString());
+            }
+
+
+            Console.WriteLine("------------------------------------------");
+        }
+
+        private void AddMetricTime(object source, string test, long time)
+        {
+            if (!resultTable.ContainsKey(source))
+                resultTable[source] = new();
+
+            if (!resultTable[source].ContainsKey(test))
+                resultTable[source][test] = new();
+
+            var rez = resultTable[source][test];
+            rez.Item1 = time;
+            resultTable[source][test] = rez;
+        }
+
+        private void AddMetricResult(object source, string test, string metric, string value)
+        {
+            if (!resultTable.ContainsKey(source))
+                resultTable[source] = new();
+
+            if (!resultTable[source].ContainsKey(test))
+                resultTable[source][test] = new();
+
+            var rez = resultTable[source][test];
+            if (rez.Item2 == null) rez.Item2 = new();
+            rez.Item2.Add((metric, value));
+            resultTable[source][test] = rez;
+        }
+
         public void Run(string path, object source, TimeSpan? timeout = null)
         {
             int iter = 0;
@@ -236,6 +341,7 @@ namespace AlgoHW
                     sw.Stop();
                 }, cts.Token);
 
+                string column = $"Iter {iter}";
                 try
                 {
                     testTask.Wait();
@@ -247,12 +353,25 @@ namespace AlgoHW
                 }
                 catch (Exception ex)
                 {
+                    var exmetrics = MetricAttribute.GetMetrics(source);
                     ResultOutput(iter, ex);
+                    AddMetricTime(source, column, sw.ElapsedTicks);
+                    foreach (var metric in exmetrics)
+                    {
+                        AddMetricResult(source, column, metric.Key, "N/A");
+                    }
                     iter++;
                     continue;
                 }
 
-                ResultOutput(iter, outputVals.ToArray(), expectedVals.ToArray(), sw.ElapsedTicks, false, MetricAttribute.GetMetrics(source));
+                var metrics = MetricAttribute.GetMetrics(source);
+                ResultOutput(iter, outputVals.ToArray(), expectedVals.ToArray(), sw.ElapsedTicks, false, metrics);
+                AddMetricTime(source, column, sw.ElapsedTicks);
+                foreach (var metric in metrics)
+                {
+                    AddMetricResult(source, column, metric.Key, metric.Value);
+                }
+
                 iter++;
             }
         }
@@ -482,8 +601,7 @@ namespace AlgoHW
                     Console.Write($"{_check} of {_limit}");
                     Console.SetCursorPosition(0, Console.CursorTop);
                 }
-            }
-
+            }            
             cts.Token.ThrowIfCancellationRequested();
         }
     }
