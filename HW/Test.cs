@@ -336,6 +336,7 @@ namespace AlgoHW
                 object? result = null;
                 testTask = Task.Run(() =>
                 {
+                    sw.Reset();
                     sw.Start();
                     result = runner.DynamicInvoke(parameters.ToArray());
                     sw.Stop();
@@ -353,6 +354,7 @@ namespace AlgoHW
                 }
                 catch (Exception ex)
                 {
+                    sw.Stop();
                     var exmetrics = MetricAttribute.GetMetrics(source);
                     ResultOutput(iter, ex);
                     AddMetricTime(source, column, sw.ElapsedTicks);
