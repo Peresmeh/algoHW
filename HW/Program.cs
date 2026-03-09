@@ -152,7 +152,7 @@ namespace AlgoHW
         static void Main(string[] args)
         {
             Test test = new Test();
-            TimeSpan timeout = TimeSpan.FromSeconds(10); //TimeSpan.FromMinutes(2);
+            TimeSpan timeout = TimeSpan.FromMinutes(2);
             List<SorterBase<int>> sorters = new List<SorterBase<int>>()
             {
 /*                new BubbleSort<int>(), new BubbleSortOptimised<int>(),
